@@ -61,3 +61,10 @@ app.get('/cat', function(req, res) {
         })
     })
 })
+app.get('/goods', function(req, res) {
+    con.query('SELECT * FROM goods WHERE id='+req.query.id, 
+        function(error, result){
+            if(error) throw error;
+            res.render('goods', {goods: JSON.parse(JSON.stringify(result))})
+        })
+})
