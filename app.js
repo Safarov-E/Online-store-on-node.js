@@ -68,3 +68,11 @@ app.get('/goods', function(req, res) {
             res.render('goods', {goods: JSON.parse(JSON.stringify(result))})
         })
 })
+
+app.post('/get-category-list', function(req, res){
+    con.query('SELECT id, category FROM category', 
+        function(error, result){
+            if(error) throw error;
+            res.json(result)
+        })
+})
