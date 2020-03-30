@@ -78,6 +78,10 @@ app.get('/goods', function(req, res) {
         })
 })
 
+app.get('/order', function(req, res) {
+    res.render('order')
+})
+
 app.post('/get-category-list', function(req, res){
     con.query('SELECT id, category FROM category', 
         function(error, result){
@@ -103,3 +107,19 @@ app.post('/get-goods-info', function (req, res) {
       res.send('0');
     }
   });
+
+  app.post('/finish-order', function (req, res) {
+    if(req.body.key.length != 0) {
+        con.query('SELECT id,name,cost FROM goods WHERE id IN ('+req.body.key.join(',')+')',
+        function (error, result, fields) {
+            if (error) throw error;
+            console.log(result);
+            sendMail(req.body, result).catch(console.error)
+            res.send('1')
+        });
+    }
+  })
+
+  function sendMail(data, result) {
+    
+  }
