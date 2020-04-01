@@ -6,6 +6,7 @@ app.use(express.static('public'));
 app.set('view engine', 'pug');
 
 app.use(express.json());
+const nodemailer = require("nodemailer");
 
 let con = mysql.createConnection({
     host: 'localhost',
@@ -120,6 +121,37 @@ app.post('/get-goods-info', function (req, res) {
     }
   })
 
-  function sendMail(data, result) {
-    
+  async function sendMail(data, result) {
+    let res = '<h2>Order in lite shop</h2>';
+    let total = 0;
+    for(let i = 0; i < result.length; i++) {
+        res += `<p>${result[i]['name']} - ${data.key[result[i]['id']]} - ${result[i]['cost']*data.key[result[i]['id']]} uah</p>`;
+        total += result[i]['cost']* data.key[result[i]['id']]
+    }
+    res += '<hr>';
+    res += `Total ${total} uah`;
+    res += `<hr>Phone: ${data.phone}`;
+    res += `<hr>Username: ${data.username}`;
+    res += `<hr>Address: ${data.address}`;
+    res += `<hr>Email: ${data.email}`;
+
+    let testAccount = await nodemailer.createTestAccount();
+    let transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: account.user, // generated ethereal user
+          pass: account.pass // generated ethereal password
+        }
+    });
+    let mailOption = {
+        from: '<elkhan.safarov10@yandex.com>',
+        to: 'elkhan.safarov10@yandex.com,'+data.email,
+        subject: 'Lite shop order',
+        text: 'Hello world',
+        html: res
+    }
+    let info = await transporter.sendMail(mailOption)
+    return true;
   }
