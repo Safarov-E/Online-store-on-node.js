@@ -15,6 +15,8 @@ let con = mysql.createConnection({
     database: 'market'
 })
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+
 app.listen(3000, function(){
     console.log('node express work on 3000');
 });
@@ -116,6 +118,7 @@ app.post('/get-goods-info', function (req, res) {
             if (error) throw error;
             console.log(result);
             sendMail(req.body, result).catch(console.error)
+            saveOrder(req.body, result)
             res.send('1')
         });
     }
@@ -124,26 +127,28 @@ app.post('/get-goods-info', function (req, res) {
   async function sendMail(data, result) {
     let res = '<h2>Order in lite shop</h2>';
     let total = 0;
-    for(let i = 0; i < result.length; i++) {
-        res += `<p>${result[i]['name']} - ${data.key[result[i]['id']]} - ${result[i]['cost']*data.key[result[i]['id']]} uah</p>`;
-        total += result[i]['cost']* data.key[result[i]['id']]
+    for (let i = 0; i < result.length; i++) {
+      res += `<p>${result[i]['name']} - ${data.key[result[i]['id']]} - ${result[i]['cost'] * data.key[result[i]['id']]} uah</p>`;
+      total += result[i]['cost'] * data.key[result[i]['id']];
     }
+    console.log(res);
     res += '<hr>';
     res += `Total ${total} uah`;
     res += `<hr>Phone: ${data.phone}`;
     res += `<hr>Username: ${data.username}`;
     res += `<hr>Address: ${data.address}`;
     res += `<hr>Email: ${data.email}`;
-
+  
     let testAccount = await nodemailer.createTestAccount();
+  
     let transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false, // true for 465, false for other ports
-        auth: {
-          user: account.user, // generated ethereal user
-          pass: account.pass // generated ethereal password
-        }
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: testAccount.user, // generated ethereal user
+        pass: testAccount.pass // generated ethereal password
+      }
     });
     let mailOption = {
         from: '<elkhan.safarov10@yandex.com>',
@@ -155,3 +160,23 @@ app.post('/get-goods-info', function (req, res) {
     let info = await transporter.sendMail(mailOption)
     return true;
   }
+
+function saveOrder(data, result) {
+    // data - информация о пользователе
+    // result - сведения о товаре
+    let sql = "INSERT INTO user_info (user_name, user_phone, user_email, address) VALUES ('"+data.username+"','"+data.phone+"','"+data.email+"','"+data.address+"')";
+    con.query(sql, function(error, resultQuery) {
+        if(error) throw error;
+        let userId = resultQuery.insertId;
+        date = new Date()/1000;
+        for(let i = 0; i < result.length; i++) {
+            sql = "INSERT INTO shop_order (data, user_id, goods_id, goods_cost, goods_amount, total) VALUES ("+date+","+userId+","+result[i]['id']+","+result[i]['cost']+data.key[result[i]['id']]+","+data.key[result[i]['id']]*result[i]['cost']+")";
+            con.query(sql, function(error, result) {
+                if(error) throw error;
+            })
+        }
+    })
+}
+async function sendMail(data, result) {
+
+}
