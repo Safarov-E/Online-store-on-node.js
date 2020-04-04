@@ -149,7 +149,33 @@ ON shop_order.user_id = user_info.id ORDER BY id DESC`,
             res.render('admin-order', {order: JSON.parse(JSON.stringify(result))})
         })
 })
-
+app.get('/login', function(req, res) {
+    res.render('login', {})
+})
+app.post('/login', function(req, res) {
+    con.query(
+        'SELECT * FROM user WHERE login="' + req.body.login + '" and password="' + req.body.password + '"',
+        function (error, result) {
+          if (error) reject(error);
+          console.log(result);
+          console.log(result.length);
+          if (result.length == 0) {
+            console.log('error user not found');
+            res.redirect('/login');
+          }
+          else {
+            result = JSON.parse(JSON.stringify(result));
+            res.cookie('hash', 'blablabla');
+            sql = "UPDATE user  SET hash='blablabla' WHERE id=" + result[0]['id'];
+            con.query(sql, function (error, resultQuery) {
+              if (error) throw error;
+              res.redirect('/admin');
+            });
+    
+    
+          };
+        });
+})
 
   async function sendMail(data, result) {
     let res = '<h2>Order in lite shop</h2>';
