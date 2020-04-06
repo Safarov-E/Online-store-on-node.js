@@ -90,7 +90,13 @@ app.get('/goods/*', function(req, res) {
     con.query('SELECT * FROM goods WHERE slug="'+req.params['0'] + '"', 
         function(error, result){
             if(error) throw error;
-            res.render('goods', {goods: JSON.parse(JSON.stringify(result))})
+            result = JSON.parse(JSON.stringify(result))
+            con.query('SELECT * FROM images WHERE goods_id="'+result['0']['id'] + '"', 
+            function(error, goodsImages){
+              if(error) throw error;
+              goodsImages = JSON.parse(JSON.stringify(goodsImages))
+              res.render('goods', {goods: result, goods_images: goodsImages});
+            })
         })
 })
 

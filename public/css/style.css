@@ -41,6 +41,10 @@
     max-width: 90%;
     min-height: 150px;
 }
+.goods-little-image {
+    max-width: 90%;
+    margin: 5%;
+}
 
 /* navigation */
 .site-nav {
